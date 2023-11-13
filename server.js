@@ -16,6 +16,7 @@ app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
+mongoose.set('strictQuery', true);
 mongoose
   .connect(`${process.env.DB_CONNECTION_URL}`)
   .then(console.log("db connected"))
@@ -50,7 +51,7 @@ app.post("/v.1/api/authenticate", async (req, res) => {
       const decodedToken = jwtDecode(token);
       const expiresAt = decodedToken.exp;
 
-      
+
       res.json({
         message: "Authentication successful!",
         token,
@@ -203,6 +204,7 @@ app.post("/v.1/api/delete", (req, res) => {
     {
       _id: {
         $in: ids,
+
       },
     },
     () => (err, result) => {
@@ -220,16 +222,21 @@ app.post("/v.1/api/send_email", async (req, res) => {
   const { lyrics, songTitle, artist, userEmail } = req.body;
 
   const transporter = nodemailer.createTransport({
-    service: process.env.HOST,
-    secure: true,
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
     auth: {
-      user: process.env.USER,
-      pass: process.env.PASSWORD,
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_USER_APP_PASS,
     },
   });
 
   let messageOptions = {
-    from: process.env.MAIL_FROM,
+    from: {
+      name: 'Davide',
+      address:process.env.GMAIL_USER,
+    },
     to: userEmail,
     subject: "schedule email",
     html: `<div
