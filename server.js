@@ -1,4 +1,5 @@
 const express = require("express");
+const fetch = require('node-fetch');
 const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -14,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 mongoose.set('strictQuery', true);
 mongoose
@@ -25,6 +26,141 @@ mongoose
 app.get("/", (req, res) => {
   res.send("hello Davide");
 });
+
+app.get("/v.1/api/all/:email", async (req, res) => {
+  console.log(req.params)
+  const userInfo = await User.find({ email: req.params.email });
+  const allSongs = await Lyrics.find({ _user: userInfo });
+  res.json(allSongs);
+});
+
+
+
+app.get("/v.1/api/song/:id", async (req, res) => {
+  const { id } = req.params;
+  const song = await Lyrics.findById(id);
+  res.json(song);
+});
+
+app.get("/v.1/api/:selectParam/:artist", async (req, res) => {
+  try {
+    const api_key = process.env.VITE_API_KEY_MUSICMATCH;
+    const { artist, selectParam } = req.params;
+    const baseUrl = 'https://api.musixmatch.com/ws/1.1/track.search';
+    const queryParams = `?${selectParam}=${artist}&page_size=4&page=1&f_has_lyrics=1&s_track_rating=desc&apikey=${api_key}`;
+    const api_url = `${baseUrl}${queryParams}`;
+    const fetch_results = await fetch(api_url);
+    const json = await fetch_results.json();
+    const result = json.message.body.track_list;
+    res.send(result);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.get("/v.1/api/cover/2.0/:albumName", async (req, res) => {
+  const apy_key_lastfm = 'd6a6878d30433cedd1a96ed2ed43eef2';
+  const { albumName } = req.params
+  let name = albumName.replace(/ /gi, "%20");
+  const api_url = `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${name}&api_key=${apy_key_lastfm}&format=json`;
+  const fetch_results = await fetch(api_url);
+  const json = await fetch_results.json();
+  const albumCover = JSON.stringify(json.results.albummatches.album[0].image[3]["#text"]);
+  res.send(albumCover);
+});
+
+
+app.get('/v.1/api/songs/:trackId/:songTrack/:idAlbum/:album', async (req, res) => {
+  try {
+    const { trackId, songTrack, idAlbum, album } = req.params;
+    const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
+    const api_key_lastfm = process.env.VITE_API_KEY_LASTFM;
+
+    // const [
+    //   lyricsResponse,
+    //   trackSearchResponse,
+    //   albumTracksResponse,
+    //   coverAlbumResponse,
+    // ] = 
+    await Promise.all([
+      fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${trackId}&apikey=${api_key_musicmatch}`),
+      fetch(`https://api.musixmatch.com/ws/1.1/track.search?q_track=${songTrack}&apikey=${api_key_musicmatch}`),
+      fetch(`https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`),
+      fetch(
+        `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${album}&api_key=${api_key_lastfm}&format=json`
+      ),
+    ]).then((res) => Promise.all(res.map((res) => res.json())))
+      .then((data) => {
+        res.send({
+          data
+        });
+      })
+
+    // const [lyricsData, trackSearchData, albumTracksData, coverAlbumData] = await Promise.all([
+    //   lyricsResponse.json(),
+    //   trackSearchResponse.json(),
+    //   albumTracksResponse.json(),
+    //   coverAlbumResponse.json(),
+    // ]);
+
+    // const lyrics = lyricsData.message.body.lyrics;
+    // const songTitle = trackSearchData.message.body.track_list;
+    // const albumTracksList = albumTracksData.message.body.track_list;
+    // const coverAlbum = coverAlbumData.results.albummatches.album[0];
+    // console.log('------------------',albumTracksList)
+    // res.send({
+    //   data
+    // });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+});
+
+app.get('/v.1/api/albumTrack/:idTrack/:idAlbum', async (req, res) => {
+  try {
+    const { idTrack, idAlbum } = req.params;
+    const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
+    // const [
+    //   lyricsResponse,
+    //   albumTracksResponse,
+    // ] = 
+    await Promise.all([
+      fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${idTrack}&apikey=${api_key_musicmatch}`),
+      fetch(`https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`),
+    ]).then((res) => Promise.all(res.map((res) => res.json())))
+      .then((data) => {
+        console.log(data)
+        res.send({
+          data
+        });
+      });
+
+    // const [lyricsData, albumTracksData] = await Promise.all([
+    //   lyricsResponse.json(),
+    //   albumTracksResponse.json(),
+    // ]);
+
+    // const lyrics = lyricsData.message.body.lyrics;
+    // const albumTracksList = albumTracksData.message.body.track_list;
+    // console.log(albumTracksList)
+    // res.send({
+    //   lyrics, albumTracksList,
+    // });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+})
+
 
 app.post("/v.1/api/authenticate", async (req, res) => {
   try {
@@ -161,7 +297,7 @@ app.post("/v.1/api/song", async (req, res) => {
       dataSaved: Date.now(),
       _user: userId,
     });
-    console.log(newSong);
+    console.log(';;;;;;: ', newSong);
     await newSong.save();
     res.json({
       type: "SUCCESS",
@@ -172,17 +308,7 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
-app.get("/v.1/api/all/:email", async (req, res) => {
-  const userInfo = await User.find({ email: req.params.email });
-  const allSongs = await Lyrics.find({ _user: userInfo });
-  res.json(allSongs);
-});
 
-app.get("/v.1/api/song/:id", async (req, res) => {
-  const { id } = req.params;
-  const song = await Lyrics.findById(id);
-  res.json(song);
-});
 
 app.delete("/v.1/api/song/:id", async (req, res) => {
   const { id } = req.params;
@@ -235,7 +361,7 @@ app.post("/v.1/api/send_email", async (req, res) => {
   let messageOptions = {
     from: {
       name: 'Davide',
-      address:process.env.GMAIL_USER,
+      address: process.env.GMAIL_USER,
     },
     to: userEmail,
     subject: "schedule email",
