@@ -273,8 +273,6 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
-
-
 app.delete("/v.1/api/song/:id", async (req, res) => {
   const { id } = req.params;
   const deleteItem = await Lyrics.findByIdAndDelete(id);
