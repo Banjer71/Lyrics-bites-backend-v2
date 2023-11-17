@@ -17,6 +17,7 @@ app.use(cors(
   {
     origin: ["https://lyrics-bites-frontend-v2.vercel.app"],
     methods: ["POST", "GET", "DELETE", "PUT"],
+    credentials: true
   }
 ));
 
