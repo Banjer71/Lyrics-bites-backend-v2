@@ -67,7 +67,7 @@ app.get("/v.1/api/cover/2.0/:albumName", async (req, res) => {
   const api_url = `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${name}&api_key=${apy_key_lastfm}&format=json`;
   const fetch_results = await fetch(api_url);
   const json = await fetch_results.json();
-  const albumCover = JSON.stringify(json.results.albummatches.album[0].image[3]["#text"]);
+  const albumCover = JSON.stringify(json.results.albummatches.album[0]?.image[3]["#text"]);
   res.send(albumCover);
 });
 
