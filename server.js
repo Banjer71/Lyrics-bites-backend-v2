@@ -394,3 +394,4 @@ app.post("/v.1/api/send_email", async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`server running on ${PORT}`));
+module.exports = app
