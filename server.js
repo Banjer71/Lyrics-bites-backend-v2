@@ -34,7 +34,6 @@ app.get("/", (req, res) => {
 });
 
 app.get("/v.1/api/all/:email", async (req, res) => {
-  console.log(req.params)
   const userInfo = await User.find({ email: req.params.email });
   const allSongs = await Lyrics.find({ _user: userInfo });
   res.json(allSongs);
@@ -110,13 +109,12 @@ app.get('/v.1/api/albumTrack/:idTrack/:idAlbum', async (req, res) => {
   try {
     const { idTrack, idAlbum } = req.params;
     const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
-   
+
     await Promise.all([
       fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${idTrack}&apikey=${api_key_musicmatch}`),
       fetch(`https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`),
     ]).then((res) => Promise.all(res.map((res) => res.json())))
       .then((data) => {
-        console.log(data)
         res.send({
           data
         });
@@ -177,7 +175,6 @@ app.post("/v.1/api/authenticate", async (req, res) => {
 app.post("/v.1/api/signup", async (req, res) => {
   try {
     const { email, firstName, lastName } = req.body;
-    console.log(req.body);
 
     const hashedPassword = await hashPassword(req.body.password);
 
@@ -266,7 +263,6 @@ app.post("/v.1/api/song", async (req, res) => {
       dataSaved: Date.now(),
       _user: userId,
     });
-    console.log(';;;;;;: ', newSong);
     await newSong.save();
     res.json({
       type: "SUCCESS",
@@ -294,7 +290,6 @@ app.delete("/v.1/api/all/:email", async (req, res) => {
 
 app.post("/v.1/api/delete", (req, res) => {
   const ids = req.body;
-  console.log(ids);
   Lyrics.deleteMany(
     {
       _id: {
