@@ -59,7 +59,6 @@ app.get("/v.1/api/:selectParam/:artist", async (req, res) => {
   }
 });
 
-
 app.get("/v.1/api/cover/2.0/:albumName", async (req, res) => {
   const apy_key_lastfm = 'd6a6878d30433cedd1a96ed2ed43eef2';
   const { albumName } = req.params
