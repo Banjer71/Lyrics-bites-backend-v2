@@ -83,12 +83,6 @@ app.get('/v.1/api/songs/:trackId/:songTrack/:idAlbum/:album', async (req, res) =
     const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
     const api_key_lastfm = process.env.VITE_API_KEY_LASTFM;
 
-    // const [
-    //   lyricsResponse,
-    //   trackSearchResponse,
-    //   albumTracksResponse,
-    //   coverAlbumResponse,
-    // ] = 
     await Promise.all([
       fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${trackId}&apikey=${api_key_musicmatch}`),
       fetch(`https://api.musixmatch.com/ws/1.1/track.search?q_track=${songTrack}&apikey=${api_key_musicmatch}`),
@@ -103,21 +97,6 @@ app.get('/v.1/api/songs/:trackId/:songTrack/:idAlbum/:album', async (req, res) =
         });
       })
 
-    // const [lyricsData, trackSearchData, albumTracksData, coverAlbumData] = await Promise.all([
-    //   lyricsResponse.json(),
-    //   trackSearchResponse.json(),
-    //   albumTracksResponse.json(),
-    //   coverAlbumResponse.json(),
-    // ]);
-
-    // const lyrics = lyricsData.message.body.lyrics;
-    // const songTitle = trackSearchData.message.body.track_list;
-    // const albumTracksList = albumTracksData.message.body.track_list;
-    // const coverAlbum = coverAlbumData.results.albummatches.album[0];
-    // console.log('------------------',albumTracksList)
-    // res.send({
-    //   data
-    // });
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({
@@ -131,10 +110,7 @@ app.get('/v.1/api/albumTrack/:idTrack/:idAlbum', async (req, res) => {
   try {
     const { idTrack, idAlbum } = req.params;
     const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
-    // const [
-    //   lyricsResponse,
-    //   albumTracksResponse,
-    // ] = 
+   
     await Promise.all([
       fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${idTrack}&apikey=${api_key_musicmatch}`),
       fetch(`https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`),
@@ -145,18 +121,6 @@ app.get('/v.1/api/albumTrack/:idTrack/:idAlbum', async (req, res) => {
           data
         });
       });
-
-    // const [lyricsData, albumTracksData] = await Promise.all([
-    //   lyricsResponse.json(),
-    //   albumTracksResponse.json(),
-    // ]);
-
-    // const lyrics = lyricsData.message.body.lyrics;
-    // const albumTracksList = albumTracksData.message.body.track_list;
-    // console.log(albumTracksList)
-    // res.send({
-    //   lyrics, albumTracksList,
-    // });
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).json({
