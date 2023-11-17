@@ -13,7 +13,13 @@ const { createToken, hashPassword, verifyPassword } = require("./utils");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors());
+app.use(cors(
+  {
+    origin: ["https://lyrics-bites-backend-v2.vercel.app"],
+    methods: ["POST", "GET", "DELETE", "PUT"],
+    credentials: true
+  }
+));
 
 const PORT = process.env.PORT || 4000;
 
