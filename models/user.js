@@ -6,6 +6,7 @@ const userSchema = new moongose.Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
+  dataSaved: Date,
 });
 
 const User = moongose.model("User", userSchema);

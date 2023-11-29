@@ -188,6 +188,7 @@ app.post("/v.1/api/signup", async (req, res) => {
       firstName,
       lastName,
       password: hashedPassword,
+      dataSaved: Date.now(),
     };
 
     const existingEmail = await User.findOne({
@@ -206,13 +207,15 @@ app.post("/v.1/api/signup", async (req, res) => {
       const decodedToken = jwtDecode(token);
       const expiresAt = decodedToken.exp;
 
-      const { nickName, firstName, lastName, email } = savedUser;
+      const { nickName, firstName, lastName, email, dataSaved } = savedUser;
+      console.log(savedUser)
 
       const userInfo = {
         nickName,
         firstName,
         lastName,
         email,
+        dataSaved
       };
 
       return res.json({
@@ -269,7 +272,6 @@ app.post("/v.1/api/song", async (req, res) => {
       dataSaved: Date.now(),
       _user: userId,
     });
-    console.log(';;;;;;: ', newSong);
     await newSong.save();
     res.json({
       type: "SUCCESS",
