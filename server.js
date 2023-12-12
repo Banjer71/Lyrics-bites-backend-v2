@@ -33,13 +33,25 @@ app.get("/", (req, res) => {
   res.send("hello Davide");
 });
 
-app.get("/v.1/api/all/:email", async (req, res) => {
-  console.log(req.params)
+app.get("/v.1/api/user/:email", async (req, res) => {
   const userInfo = await User.find({ email: req.params.email });
   const allSongs = await Lyrics.find({ _user: userInfo });
+  const numberOfSong = allSongs.length
+
+  res.json({
+    userInfo,
+    numberOfSong
+  })
+
+})
+
+
+app.get("/v.1/api/all/:email", async (req, res) => {
+  const userInfo = await User.find({ email: req.params.email });
+  const allSongs = await Lyrics.find({ _user: userInfo });
+
   res.json(allSongs);
 });
-
 
 
 app.get("/v.1/api/song/:id", async (req, res) => {
