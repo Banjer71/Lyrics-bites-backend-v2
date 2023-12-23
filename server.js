@@ -8,6 +8,9 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 const User = require("./models/user");
 const Lyrics = require("./models/lyrics");
+const SplittedLyrics = require('./models/splittedSong')
+const cron = require('node-cron');
+
 
 const { createToken, hashPassword, verifyPassword } = require("./utils");
 
@@ -28,6 +31,107 @@ mongoose
   .connect(`${process.env.MONGODB_URI}`)
   .then(console.log("db connected"))
   .catch((err) => console.log(err.message));
+;
+
+
+
+// Schedule a job to send verses at the specified frequency
+const scheduleJob = (userEmail, frequency, songTitle, _id) => {
+  let index = 0;
+
+  const cronJob = cron.schedule(`*/${frequency} * * * * *`, async () => {
+    try {
+      const user = await SplittedLyrics.findOne({ userEmail });
+
+      if (user) {
+        const savedSongs = await SplittedLyrics.find({ $and: [{ _id }, { userEmail }] }).select('songSplitted');
+
+
+        if (savedSongs.length > 0) {
+          const verses = savedSongs[0].songSplitted;
+          console.log('!!!!!!: ', verses)
+
+          if (index < verses.length) {
+            const unsentVerse = verses[index];
+
+            // Send the verse and update the lastSent timestamp in the database
+            if (user.userEmail && user._id) {
+              sendVerseByEmail(userEmail, unsentVerse, songTitle, (error, response) => {
+                if (error) {
+                  console.error('Error sending email:', error);
+                } else {
+                  console.log(response);
+                }
+              });
+            }
+
+            // Update lastSent with the current verse and increment the counter
+            await SplittedLyrics.findOneAndUpdate(
+              { userEmail },
+              { lastSent: unsentVerse },
+              { new: true }
+            );
+
+            index += 1;
+
+          } else {
+            cronJob.stop();
+            console.log('All verses sent. Cron job stopped.');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in scheduling job:', error);
+    }
+  });
+};
+
+
+const sendVerseByEmail = (userEmail, unsentVerse, songTitle) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_USER_APP_PASS,
+    },
+  });
+
+  let messageOptions = {
+    from: {
+      name: 'Davide',
+      address: process.env.GMAIL_USER,
+    },
+    to: userEmail,
+    subject: "Schedule Email",
+    html: `<div
+    style="
+    font-family:monospace;
+    margin: 0 auto;
+    max-width: 400px;
+    text-align: center;
+    line-height: 2">
+    <h2>${songTitle}</h2>
+    <h3></h3>
+    ${unsentVerse}
+    </div>`,
+  };
+
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(messageOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        reject(error);
+      } else {
+        console.log("Email successfully sent!!!");
+        resolve('Lyrics has been sent correctly!!!');
+      }
+    });
+  });
+};
+
 
 app.get("/", (req, res) => {
   res.send("hello Davide");
@@ -294,6 +398,39 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
+
+app.post('/v.1/api/schedule', async (req, res) => {
+  const { frequency, lyrics, userEmail, _id, songTitle } = req.body
+  const theEnd = ['I hope you enjoyed this way of learning']
+  const splittedLyricsArray = lyrics.split('\n\n').map(verse => verse)
+  splittedLyricsArray.pop()
+  const songSplitted = [...splittedLyricsArray, ...theEnd]
+  const userIdExist = await SplittedLyrics.exists({ _id: _id });
+
+
+  if (userIdExist) {
+    res.status(400).send({ message: `Split already exist in the db` });
+  } else {
+    const splittedSong = new SplittedLyrics({
+      userEmail,
+      frequency,
+      songTitle,
+      songSplitted,
+      _id,
+      lastSent: Date.now()
+    })
+
+    await splittedSong.save()
+      .then(() => {
+        scheduleJob(userEmail, frequency, songTitle, _id)
+        res.json({ message: 'data splitted received', lyrics })
+      })
+      .catch((error) => {
+        console.error('Error saving user:', error);
+        res.status(500).send('Internal Server Error');
+      });
+  }
+})
 
 
 app.delete("/v.1/api/song/:id", async (req, res) => {
