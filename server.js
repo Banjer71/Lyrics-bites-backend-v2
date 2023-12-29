@@ -135,7 +135,7 @@ app.get("/", (req, res) => {
   res.send("hello Davide");
 });
 
-app.get("/v.1/api/user/:email", async (req, res) => {
+app.get("/v.1/api/all/:email", async (req, res) => {
   const userInfo = await User.find({ email: req.params.email });
   const allSongs = await Lyrics.find({ _user: userInfo });
   const numberOfSong = allSongs.length;
@@ -189,42 +189,35 @@ app.get("/v.1/api/cover/2.0/:albumName", async (req, res) => {
   res.send(albumCover);
 });
 
-app.get(
-  "/v.1/api/songs/:trackId/:songTrack/:idAlbum/:album",
-  async (req, res) => {
-    try {
-      const { trackId, songTrack, idAlbum, album } = req.params;
-      const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
-      const api_key_lastfm = process.env.VITE_API_KEY_LASTFM;
 
-      await Promise.all([
-        fetch(
-          `https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${trackId}&apikey=${api_key_musicmatch}`
-        ),
-        fetch(
-          `https://api.musixmatch.com/ws/1.1/track.search?q_track=${songTrack}&apikey=${api_key_musicmatch}`
-        ),
-        fetch(
-          `https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`
-        ),
-        fetch(
-          `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${album}&api_key=${api_key_lastfm}&format=json`
-        ),
-      ])
-        .then((res) => Promise.all(res.map((res) => res.json())))
-        .then((data) => {
-          res.send({
-            data,
-          });
+app.get('/v.1/api/songs/:trackId/:songTrack/:idAlbum/:album', async (req, res) => {
+  try {
+    const { trackId, songTrack, idAlbum, album } = req.params;
+    const api_key_musicmatch = process.env.VITE_API_KEY_MUSICMATCH;
+    const api_key_lastfm = process.env.VITE_API_KEY_LASTFM;
+
+    await Promise.all([
+      fetch(`https://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=${trackId}&apikey=${api_key_musicmatch}`),
+      fetch(`https://api.musixmatch.com/ws/1.1/track.search?q_track=${songTrack}&apikey=${api_key_musicmatch}`),
+      fetch(`https://api.musixmatch.com/ws/1.1/album.tracks.get?album_id=${idAlbum}&apikey=${api_key_musicmatch}`),
+      fetch(
+        `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${album}&api_key=${api_key_lastfm}&format=json`
+      ),
+    ]).then((res) => Promise.all(res.map((res) => res.json())))
+      .then((data) => {
+        res.send({
+          data
         });
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      res.status(500).json({
-        success: false,
-        message: "Internal Server Error",
-      });
-    }
+      })
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
   }
+}
 );
 
 app.get("/v.1/api/albumTrack/:idTrack/:idAlbum", async (req, res) => {
@@ -242,7 +235,6 @@ app.get("/v.1/api/albumTrack/:idTrack/:idAlbum", async (req, res) => {
     ])
       .then((res) => Promise.all(res.map((res) => res.json())))
       .then((data) => {
-        console.log(data);
         res.send({
           data,
         });
@@ -456,7 +448,6 @@ app.delete("/v.1/api/all/:email", async (req, res) => {
 
 app.post("/v.1/api/delete", (req, res) => {
   const ids = req.body;
-  console.log(ids);
   Lyrics.deleteMany(
     {
       _id: {
