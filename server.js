@@ -34,7 +34,7 @@ mongoose
 const scheduleJob = (userEmail, frequency, songTitle, _id) => {
   let index = 0;
 
-  const cronJob = cron.schedule(`*/${frequency} * * * * *`, async () => {
+  const cronJob = cron.schedule(`*/${frequency} * * * * `, async () => {
     try {
       const user = await SplittedLyrics.findOne({ userEmail });
 
