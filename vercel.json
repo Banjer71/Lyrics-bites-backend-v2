@@ -11,5 +11,10 @@
         "src": "/(.*)",
         "dest": "server.js"
       }
-    ]
+    ],
+    {
+      "crons": [{
+        "path": "/v.1/api/schedule"
+      }]
+    }
   }
