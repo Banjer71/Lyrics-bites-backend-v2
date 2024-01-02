@@ -14,17 +14,18 @@
   ],
 
   "crons": [
+
     {
       "path": "/v.1/api/1",
-      "schedule": "*/1 * * * *"
+      "schedule": "*/1 * * * "
     },
     {
       "path": "/v.1/api/3",
-      "schedule": "*/3 * * * *"
+      "schedule": "*/3 * * * "
     },
     {
       "path": "/v.1/api/2",
-      "schedule": "*/2 * * * *"
+      "schedule": "*/2 * * * "
     }
   ]
 }
