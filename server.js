@@ -31,10 +31,11 @@ mongoose
   .then(console.log("db connected"))
   .catch((err) => console.log(err.message));
 // Schedule a job to send verses at the specified frequency
+
 const scheduleJob = (userEmail, frequency, songTitle, _id) => {
   let index = 0;
 
-  const cronJob = cron.schedule(`*/${frequency} * * * * `, async () => {
+  const cronJob = cron.schedule(`0 0 * * * `, async () => {
     try {
       const user = await SplittedLyrics.findOne({ userEmail });
 
@@ -408,7 +409,7 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
-app.post("/v.1/api/schedule", async (req, res) => {
+app.post("/v.1/api/schedule/:frequency", async (req, res) => {
   const { frequency, lyrics, userEmail, _id, songTitle } = req.body;
   const theEnd = ["I hope you enjoyed this way of learning"];
   const splittedLyricsArray = lyrics.split("\n\n").map((verse) => verse);
