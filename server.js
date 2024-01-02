@@ -409,7 +409,7 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
-app.post("/v.1/api/schedule", async (req, res) => {
+app.post("/v.1/api/schedule/:frequency", async (req, res) => {
   const { frequency, lyrics, userEmail, _id, songTitle } = req.body;
   const theEnd = ["I hope you enjoyed this way of learning"];
   const splittedLyricsArray = lyrics.split("\n\n").map((verse) => verse);
