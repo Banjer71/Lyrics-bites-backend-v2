@@ -16,7 +16,7 @@
   "crons": [
 
     {
-      "path": "/v.1/api/1",
+      "path": "/v.1/api/schedule/:frequency",
       "schedule": "0 0 * * *"
     }
   ]
