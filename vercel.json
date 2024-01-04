@@ -17,7 +17,7 @@
 
     {
       "path": "/v.1/api/schedule/:frequency",
-      "schedule": "0 0 * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }
