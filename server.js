@@ -32,10 +32,10 @@ mongoose
   .catch((err) => console.log(err.message));
 // Schedule a job to send verses at the specified frequency
 
-const scheduleJob = (userEmail, frequency, songTitle, _id) => {
+const scheduleJob = async (userEmail, frequency, songTitle, _id) => {
   let index = 0;
 
-  const cronJob = cron.schedule(`0 0 * * * `, async () => {
+  // const cronJob = cron.schedule(`0 0 * * * `, async () => {
     try {
       const user = await SplittedLyrics.findOne({ userEmail });
 
@@ -84,7 +84,7 @@ const scheduleJob = (userEmail, frequency, songTitle, _id) => {
     } catch (error) {
       console.error("Error in scheduling job:", error);
     }
-  });
+  // });
 };
 
 const sendVerseByEmail = (userEmail, unsentVerse, songTitle) => {
