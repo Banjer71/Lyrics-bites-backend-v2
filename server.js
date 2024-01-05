@@ -33,59 +33,86 @@ mongoose
 // Schedule a job to send verses at the specified frequency
 
 const scheduleJob = async (userEmail, frequency, songTitle, _id) => {
+
+  // Limit frequency to max 3 days
+  const freq = Math.min(frequency, 3);
+  
   let index = 0;
 
-  // const cronJob = cron.schedule(`0 0 * * * `, async () => {
+  const scheduleVerse = async () => {
+
     try {
-      const user = await SplittedLyrics.findOne({ userEmail });
+      
+      const user = await SplittedLyrics.findOne({userEmail});
 
       if (user) {
-        const savedSongs = await SplittedLyrics.find({
-          $and: [{ _id }, { userEmail }],
+
+        const savedSongs = await SplittedLyrics.find({ 
+          $and: [
+            {_id},
+            {userEmail}  
+          ]
         }).select("songSplitted");
 
         if (savedSongs.length > 0) {
+          
           const verses = savedSongs[0].songSplitted;
-
+          
           if (index < verses.length) {
+
             const unsentVerse = verses[index];
 
-            // Send the verse and update the lastSent timestamp in the database
-            if (user.userEmail && user._id) {
-              sendVerseByEmail(
-                userEmail,
-                unsentVerse,
-                songTitle,
-                (error, response) => {
-                  if (error) {
-                    console.error("Error sending email:", error);
-                  } else {
-                    console.log(response);
-                  }
+            // Send verse
+            sendVerseByEmail(
+              userEmail, 
+              unsentVerse,
+              songTitle,
+              (error, response) => {
+                if (error) {
+                  console.error(error);
+                } else {
+                  console.log(response);
                 }
-              );
-            }
-
-            // Update lastSent with the current verse and increment the counter
-            await SplittedLyrics.findOneAndUpdate(
-              { userEmail },
-              { lastSent: unsentVerse },
-              { new: true }
+              }
             );
 
-            index += 1;
+            // Update lastSent
+            await SplittedLyrics.findOneAndUpdate(
+              {userEmail}, 
+              {lastSent: unsentVerse}, 
+              {new: true}
+            );
+            
+            index++;
+
+            // Schedule next verse
+            setTimeout(scheduleVerse, freq * 60 * 1000); 
+
           } else {
-            cronJob.stop();
+
+            // Finished sending verses
+            console.log("All verses sent");
+            
+            // Delete doc
             await SplittedLyrics.findByIdAndDelete(_id);
-            console.log("All verses sent. Cron job stopped.");
+
           }
+
         }
+
       }
+      
     } catch (error) {
-      console.error("Error in scheduling job:", error);
+      console.error(error);
     }
-  // });
+
+  };
+
+  // Schedule first verse
+  setTimeout(scheduleVerse, freq * 60 * 1000); 
+
 };
+
 
 const sendVerseByEmail = (userEmail, unsentVerse, songTitle) => {
   const transporter = nodemailer.createTransport({
@@ -409,7 +436,7 @@ app.post("/v.1/api/song", async (req, res) => {
   }
 });
 
-app.post("/v.1/api/schedule/frequency", async (req, res) => {
+app.post("/v.1/api/schedule/:frequency", async (req, res) => {
   const { frequency, lyrics, userEmail, _id, songTitle } = req.body;
   const theEnd = ["I hope you enjoyed this way of learning"];
   const splittedLyricsArray = lyrics.split("\n\n").map((verse) => verse);
