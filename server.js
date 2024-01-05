@@ -9,7 +9,7 @@ require("dotenv").config();
 const User = require("./models/user");
 const Lyrics = require("./models/lyrics");
 const SplittedLyrics = require("./models/splittedSong");
-const cron = require("node-cron");
+
 
 const { createToken, hashPassword, verifyPassword } = require("./utils");
 
