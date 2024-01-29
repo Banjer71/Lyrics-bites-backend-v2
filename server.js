@@ -62,11 +62,11 @@ async function processAndSendEmails() {
   }
 }
 
-app.get("/v.1/api/timetosend/", (req, res) => {
-  cron.schedule(`0 9 * * *  `, async () => {
+app.get("/v.1/api/timetosend/", async (req, res) => {
+  // cron.schedule(`0 9 * * *  `, async () => {
     console.log("Running the cron job");
     await processAndSendEmails();
-  });
+  // });
 });
 
 const sendVerseByEmail = (
