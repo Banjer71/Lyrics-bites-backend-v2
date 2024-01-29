@@ -62,9 +62,11 @@ async function processAndSendEmails() {
   }
 }
 
-cron.schedule(`*/1 * * * *  `, async () => {
-  console.log("Running the cron job");
-  await processAndSendEmails();
+app.get("/v.1/api/timetosend/", (req, res) => {
+  cron.schedule(`0 9 * * *  `, async () => {
+    console.log("Running the cron job");
+    await processAndSendEmails();
+  });
 });
 
 const sendVerseByEmail = (
