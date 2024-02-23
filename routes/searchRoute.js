@@ -7,7 +7,7 @@ router.get("/v.1/api/:selectParam/:artist", async (req, res) => {
     const api_key = process.env.VITE_API_KEY_MUSICMATCH;
     const { artist, selectParam } = req.params;
     const baseUrl = "https://api.musixmatch.com/ws/1.1/track.search";
-    const queryParams = `?${selectParam}=${artist}&page_size=4&page=1&f_has_lyrics=1&s_track_rating=desc&apikey=${api_key}`;
+    const queryParams = `?${selectParam}=${artist}&page_size=30&page=1&f_has_lyrics=1&s_track_rating=desc&apikey=${api_key}`;
     const api_url = `${baseUrl}${queryParams}`;
     const fetch_results = await fetch(api_url);
     const json = await fetch_results.json();

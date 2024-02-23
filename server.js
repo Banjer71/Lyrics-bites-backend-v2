@@ -9,7 +9,6 @@ const User = require("./models/user");
 const Lyrics = require("./models/lyrics");
 const SplittedLyrics = require("./models/splittedSong");
 const cron = require("node-cron");
-const Cabin = require("cabin");
 const searchRoutes = require("./routes/searchRoute");
 const autRoutes = require("./routes/authRoute");
 const songRoutes = require("./routes/songRoute");
